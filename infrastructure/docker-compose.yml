@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  monitoring:
+    build: .
+    ports:
+      - "5000:5000"
+    volumes:
+      - .:/app
+    environment:
+      - PYTHONUNBUFFERED=1
+  anomaly_detection:
+    build: .
+    command: ["python", "backend/threat_detection/anomaly_detection.py"]
+  threat_intelligence:
+    build: .
+    command: ["python", "backend/threat_detection/threat_intelligence.py"]
+  incident_handler:
+    build: .
+    command: ["python", "backend/incident_response/incident_handler.py"]
+  automated_response:
+    build: .
+    command: ["python", "backend/incident_response/automated_response.py"]
+  compliance_checker:
+    build: .
+    command: ["python", "backend/compliance_management/compliance_checker.py"]
+  remediation_actions:
+    build: .
+    command: ["python", "backend/compliance_management/remediation_actions.py"]
+  cloudtrail_analysis:
+    build: .
+    command: ["python", "backend/logging/cloudtrail_analysis.py"]
+  log_aggregator:
+    build: .
+    command: ["python", "backend/logging/log_aggregator.py"]
