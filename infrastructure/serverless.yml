@@ -1,0 +1,53 @@
+service: network-security-management
+
+provider:
+  name: aws
+  runtime: python3.8
+  region: us-east-1
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - "s3:*"
+        - "sns:*"
+        - "cloudwatch:*"
+        - "config:*"
+        - "cloudtrail:*"
+        - "waf:*"
+        - "ec2:*"
+        - "kinesis:*"
+      Resource: "*"
+
+functions:
+  realTimeMonitoring:
+    handler: backend/threat_detection/real_time_monitoring.lambda_handler
+    events:
+      - kinesis:
+          arn: arn:aws:kinesis:region:account-id:stream/network-security-stream
+
+  anomalyDetection:
+    handler: backend/threat_detection/anomaly_detection.lambda_handler
+
+  threatIntelligence:
+    handler: backend/threat_detection/threat_intelligence.lambda_handler
+
+  incidentHandler:
+    handler: backend/incident_response/incident_handler.lambda_handler
+
+  automatedResponse:
+    handler: backend/incident_response/automated_response.lambda_handler
+
+  complianceChecker:
+    handler: backend/compliance_management/compliance_checker.lambda_handler
+    events:
+      - schedule: rate(1 day)
+
+  remediationActions:
+    handler: backend/compliance_management/remediation_actions.lambda_handler
+
+  cloudTrailAnalysis:
+    handler: backend/logging/cloudtrail_analysis.lambda_handler
+    events:
+      - schedule: rate(15 minutes)
+
+  logAggregator:
+    handler: backend/logging/log_aggregator.lambda_handler
