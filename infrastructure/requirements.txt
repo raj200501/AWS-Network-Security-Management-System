@@ -1,0 +1,8 @@
+boto3
+flask
+pandas
+scikit-learn
+numpy
+awscli
+jupyter
+matplotlib
