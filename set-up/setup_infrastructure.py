@@ -1,20 +1,18 @@
-import boto3
+"""Local setup script for NSMS.
 
-# Initialize AWS clients
-cloudformation_client = boto3.client('cloudformation')
+This script creates required directories and validates configuration files.
+"""
 
-def create_stack(stack_name, template_body):
-    response = cloudformation_client.create_stack(
-        StackName=stack_name,
-        TemplateBody=template_body,
-        Capabilities=['CAPABILITY_NAMED_IAM']
-    )
-    return response
+from pathlib import Path
 
-if __name__ == '__main__':
-    stack_name = 'network-security-stack'
-    with open('infrastructure/cloudformation_template.yaml', 'r') as template_file:
-        template_body = template_file.read()
-    
-    response = create_stack(stack_name, template_body)
-    print(f"Stack creation initiated: {response}")
+from nsms.config import Config
+from nsms.threat_intel import ThreatIntelStore
+from nsms.compliance import ComplianceChecker
+
+
+if __name__ == "__main__":
+    config = Config.load()
+    config.ensure_output_dir()
+    ThreatIntelStore.load(config.threat_intel_path)
+    ComplianceChecker.load(config.compliance_rules_path)
+    print("Local NSMS infrastructure validated")

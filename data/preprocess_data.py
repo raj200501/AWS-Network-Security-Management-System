@@ -1,17 +1,12 @@
-import pandas as pd
-import re
+"""Preprocess log data for NSMS."""
 
-def preprocess_text(text):
-    text = re.sub(r'\s+', ' ', text)
-    text = re.sub(r'\W', ' ', text)
-    text = text.lower().strip()
-    return text
+from pathlib import Path
 
-def preprocess_data(file_path):
-    data = pd.read_csv(file_path)
-    data['cleaned_content'] = data['content'].apply(preprocess_text)
-    data.to_csv('data/processed_data.csv', index=False)
+from nsms.data import load_logs
+from nsms.preprocessing import extract_features
 
-if __name__ == '__main__':
-    preprocess_data('data/sample_logs.csv')
-    print("Data preprocessing complete")
+
+if __name__ == "__main__":
+    records = load_logs(Path("data/sample_logs.csv"))
+    features = extract_features(records)
+    print(f"Extracted {len(features)} feature vectors")

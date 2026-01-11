@@ -1,27 +1,18 @@
-import boto3
-import json
+"""Simulated automated response actions."""
 
-# Initialize AWS clients
-ec2_client = boto3.client('ec2')
-sns_client = boto3.client('sns')
+from nsms.incident import create_incident
 
-# SNS topic for alerts
-sns_topic_arn = 'arn:aws:sns:region:account-id:network-security-alerts'
 
-def quarantine_instance(instance_id):
-    response = ec2_client.modify_instance_attribute(
-        InstanceId=instance_id,
-        Groups=[]
+def respond_to_incident(incident_id: str, severity: str) -> list[str]:
+    incident = create_incident(
+        incident_id=incident_id,
+        severity=severity,
+        description="Automated response triggered",
     )
-    return response
+    return incident.remediation_steps
 
-def lambda_handler(event, context):
-    for record in event['Records']:
-        payload = json.loads(record['body'])
-        instance_id = payload['instance_id']
-        
-        response = quarantine_instance(instance_id)
-        sns_client.publish(TopicArn=sns_topic_arn, Message=f"Instance quarantined: {instance_id}")
-        print(f"Instance quarantined: {instance_id}, Response: {response}")
 
-    return {'statusCode': 200, 'body': json.dumps('Processed')}
+if __name__ == "__main__":
+    steps = respond_to_incident("INC-0001", "high")
+    for step in steps:
+        print(step)

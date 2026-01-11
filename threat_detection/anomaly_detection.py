@@ -1,46 +1,29 @@
-import json
-import boto3
-import numpy as np
-from sklearn.ensemble import IsolationForest
-from sklearn.preprocessing import StandardScaler
-from botocore.exceptions import ClientError
+"""Local anomaly detection helpers."""
 
-# Initialize AWS clients
-s3_client = boto3.client('s3')
-sns_client = boto3.client('sns')
+from __future__ import annotations
 
-# Model and scaler file locations
-model_bucket = 'network-security-models'
-model_file = 'anomaly_model.pkl'
-scaler_file = 'scaler.pkl'
+from pathlib import Path
 
-# SNS topic for alerts
-sns_topic_arn = 'arn:aws:sns:region:account-id:network-security-alerts'
+from nsms.model_io import load_model
+from nsms.preprocessing import extract_features
+from nsms.data import load_logs
 
-# Load the model and scaler
-def load_model_from_s3(bucket, key):
-    response = s3_client.get_object(Bucket=bucket, Key=key)
-    return pickle.loads(response['Body'].read())
 
-try:
-    model = load_model_from_s3(model_bucket, model_file)
-    scaler = load_model_from_s3(model_bucket, scaler_file)
-except ClientError as e:
-    print(f"Error loading model or scaler: {e}")
+def detect_anomalies(log_path: str, model_path: str) -> list[bool]:
+    """Load logs and detect anomalies using the saved model."""
 
-def detect_anomalies(data):
-    data = scaler.transform([data])
-    prediction = model.predict(data)
-    return prediction[0] == -1
+    model = load_model(Path(model_path))
+    records = load_logs(Path(log_path))
+    features = extract_features(records)
+    return model.predict(features)
 
-def lambda_handler(event, context):
-    for record in event['Records']:
-        payload = json.loads(record['body'])
-        data = payload['data']
-        
-        if detect_anomalies(data):
-            alert_message = f"Anomaly detected: {data}"
-            sns_client.publish(TopicArn=sns_topic_arn, Message=alert_message)
-            print(alert_message)
 
-    return {'statusCode': 200, 'body': json.dumps('Processed')}
+if __name__ == "__main__":
+    from nsms.config import Config
+
+    config = Config.load()
+    model = load_model(config.model_path)
+    records = load_logs(config.data_path)
+    features = extract_features(records)
+    results = model.predict(features)
+    print(f"Detected {sum(1 for flag in results if flag)} anomalies")

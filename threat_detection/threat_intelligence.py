@@ -1,33 +1,21 @@
-import boto3
-import json
+"""Threat intelligence lookups for local runs."""
 
-# Initialize AWS clients
-dynamodb_client = boto3.client('dynamodb')
-sns_client = boto3.client('sns')
+from __future__ import annotations
 
-# DynamoDB table for threat intelligence
-threat_intel_table = 'ThreatIntelligence'
+from pathlib import Path
 
-# SNS topic for alerts
-sns_topic_arn = 'arn:aws:sns:region:account-id:network-security-alerts'
+from nsms.threat_intel import ThreatIntelStore
 
-def check_threat_intelligence(ip_address):
-    response = dynamodb_client.get_item(
-        TableName=threat_intel_table,
-        Key={'IPAddress': {'S': ip_address}}
-    )
-    if 'Item' in response:
-        return True
-    return False
 
-def lambda_handler(event, context):
-    for record in event['Records']:
-        payload = json.loads(record['body'])
-        ip_address = payload['ip_address']
-        
-        if check_threat_intelligence(ip_address):
-            alert_message = f"Threat detected from IP: {ip_address}"
-            sns_client.publish(TopicArn=sns_topic_arn, Message=alert_message)
-            print(alert_message)
+def check_threat_intelligence(ip_address: str, intel_path: str) -> bool:
+    store = ThreatIntelStore.load(Path(intel_path))
+    return store.check_ip(ip_address) is not None
 
-    return {'statusCode': 200, 'body': json.dumps('Processed')}
+
+if __name__ == "__main__":
+    from nsms.config import Config
+
+    config = Config.load()
+    store = ThreatIntelStore.load(config.threat_intel_path)
+    summary = store.summary()
+    print("Threat intel summary:", summary)

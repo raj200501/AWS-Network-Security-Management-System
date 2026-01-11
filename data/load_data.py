@@ -1,9 +1,10 @@
-import pandas as pd
+"""Load log data for NSMS."""
 
-def load_data(file_path):
-    data = pd.read_csv(file_path)
-    return data
+from pathlib import Path
 
-if __name__ == '__main__':
-    data = load_data('data/sample_logs.csv')
-    print(data.head())
+from nsms.data import load_logs
+
+
+if __name__ == "__main__":
+    records = load_logs(Path("data/sample_logs.csv"))
+    print(f"Loaded {len(records)} records")

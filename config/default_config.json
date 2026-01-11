@@ -1,0 +1,12 @@
+{
+  "data_path": "data/sample_logs.csv",
+  "threat_intel_path": "data/threat_intel.json",
+  "compliance_rules_path": "data/compliance_rules.json",
+  "model_path": "models/anomaly_model.json",
+  "output_dir": "outputs",
+  "anomaly_threshold": 2.5,
+  "allowed_regions": ["us-east-1", "us-west-2", "eu-west-1"],
+  "allowed_protocols": ["HTTPS", "SSH", "DNS"],
+  "high_risk_actions": ["DELETE", "ROOT_LOGIN"],
+  "retention_days": 30
+}
