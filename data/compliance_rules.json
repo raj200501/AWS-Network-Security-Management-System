@@ -1,0 +1,18 @@
+{
+  "rules": [
+    {
+      "rule_id": "CMP-001",
+      "description": "Traffic must originate from approved regions",
+      "allowed_regions": ["us-east-1", "us-west-2", "eu-west-1"],
+      "allowed_protocols": ["HTTPS", "SSH", "DNS"],
+      "high_risk_actions": ["DELETE", "ROOT_LOGIN"]
+    },
+    {
+      "rule_id": "CMP-002",
+      "description": "Sensitive actions require HTTPS or SSH",
+      "allowed_regions": ["us-east-1", "us-west-2", "eu-west-1"],
+      "allowed_protocols": ["HTTPS", "SSH"],
+      "high_risk_actions": ["DELETE", "ROOT_LOGIN"]
+    }
+  ]
+}

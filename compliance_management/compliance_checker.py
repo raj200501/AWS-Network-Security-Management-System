@@ -1,27 +1,13 @@
-import boto3
-import json
+"""Run compliance checks on the dataset."""
 
-# Initialize AWS clients
-config_client = boto3.client('config')
-sns_client = boto3.client('sns')
+from pathlib import Path
 
-# SNS topic for compliance alerts
-sns_topic_arn = 'arn:aws:sns:region:account-id:network-security-compliance-alerts'
+from nsms.compliance import ComplianceChecker
+from nsms.data import load_logs
 
-def check_compliance():
-    response = config_client.get_compliance_summary_by_config_rule()
-    non_compliant_rules = [
-        rule for rule in response['ComplianceSummaryByConfigRules']
-        if rule['ComplianceSummary']['NonCompliantResourceCount']['TotalCount'] > 0
-    ]
-    return non_compliant_rules
 
-def lambda_handler(event, context):
-    non_compliant_rules = check_compliance()
-    
-    if non_compliant_rules:
-        alert_message = f"Non-compliant rules detected: {json.dumps(non_compliant_rules)}"
-        sns_client.publish(TopicArn=sns_topic_arn, Message=alert_message)
-        print(alert_message)
-
-    return {'statusCode': 200, 'body': json.dumps('Compliance check completed')}
+if __name__ == "__main__":
+    checker = ComplianceChecker.load(Path("data/compliance_rules.json"))
+    records = load_logs(Path("data/sample_logs.csv"))
+    violations = sum(1 for record in records if checker.evaluate(record))
+    print(f"Compliance violations: {violations}")
