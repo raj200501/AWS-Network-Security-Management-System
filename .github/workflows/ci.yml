@@ -13,4 +13,6 @@ jobs:
         with:
           python-version: "3.11"
       - name: Run verification
+        env:
+          PYTHONPATH: ${{ github.workspace }}
         run: ./scripts/verify.sh
